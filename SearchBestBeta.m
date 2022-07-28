@@ -2,47 +2,47 @@ clear all
 close all
 clc
 
-%% Ô¤¶¨Òå±äÁ¿
+%% é¢„å®šä¹‰å˜é‡
 N = 2016;
 K = 1008;
 R = K/N;
 R_cmp = 5/6;
 
-%% Ìí¼Ó¹¤×÷Â·¾¶
+%% æ·»åŠ å·¥ä½œè·¯å¾„
 addpath('Encoder')
 addpath('Decoder')
 
-%% H¾ØÕóÉú³É
+%% HçŸ©é˜µç”Ÿæˆ
 [ H, Hp, Hs ] = HxMatrixGen();
 
-%% ·ÂÕæ
-Eb_N0_dB = 1.0;
+%% ä»¿çœŸ
+Eb_N0_dB = 2.0;
 beta = 0:0.1:1;
 
 BER = zeros(1, length(beta));
 for beta_i = 1:1:length(beta)
     
     disp(['beta = ' num2str(beta(beta_i)) ' is simulating...']);
-    % Éè¶¨Í£Ö¹Ìõ¼ş
+    % è®¾å®šåœæ­¢æ¡ä»¶
     if Eb_N0_dB <= 1
         maxErrorBlocks = 50;
     else
         maxErrorBlocks = 3;
     end
     
-    % Éè¶¨ÒëÂëËã·¨×î´óµü´ú´ÎÊı
+    % è®¾å®šè¯‘ç ç®—æ³•æœ€å¤§è¿­ä»£æ¬¡æ•°
     iterMax = 30;
     
-    %Éè¶¨Ã¿¸öĞÅÔë±ÈÏÂ×î´ó·ÂÕæÖ¡¸öÊı
+    %è®¾å®šæ¯ä¸ªä¿¡å™ªæ¯”ä¸‹æœ€å¤§ä»¿çœŸå¸§ä¸ªæ•°
     maxBlocks = 10^6;
     
-    % ËÄÖÖËã·¨µÄ×ÜÎóÂëÊıErrorBits ºÍ ×ÜÎóÖ¡ÊıErrorBlocks ºÍ ËùÓĞÖ¡µÄ×ÜÑ­»·Êıblocks ÔÚÃ¿¸öEb/N0·ÂÕæÇ°ÇåÁã
+    % å››ç§ç®—æ³•çš„æ€»è¯¯ç æ•°ErrorBits å’Œ æ€»è¯¯å¸§æ•°ErrorBlocks å’Œ æ‰€æœ‰å¸§çš„æ€»å¾ªç¯æ•°blocks åœ¨æ¯ä¸ªEb/N0ä»¿çœŸå‰æ¸…é›¶
     ErrorBits_OMS = 0; 
     ErrorBlocks_OMS = 0;
     blocks_OMS = 0;
     
     for i = 1:1:maxBlocks
-        % Ëã·¨2±àÂë£¨s --> x£©
+        % ç®—æ³•2ç¼–ç ï¼ˆs --> xï¼‰
         % disp(['    the ' num2str(i) '-th frame of OMS decoding based on beta = ' num2str(beta(beta_i))]);
         
         s = randi([0, 1], 1, 1008);
@@ -56,7 +56,7 @@ for beta_i = 1:1:length(beta)
             sprintf('the '+ num2str(i) + ' th encoding is not right');
         end
 
-        % BPSKµ÷ÖÆ
+        % BPSKè°ƒåˆ¶
         d = 1 - 2.*x;
         d_cmp = 1 - 2.*x_cmp;
 
@@ -65,17 +65,17 @@ for beta_i = 1:1:length(beta)
         SNR_dB = Eb_N0_dB + 10*log10(R_cmp) - 10*log10(1/2);
         SNR_linear = 10^(SNR_dB/10);
         sigma = sqrt(1/SNR_linear);
-        y = d + sigma*randn(size(d)); % ¼ÓÔëÉù
+        y = d + sigma*randn(size(d)); % åŠ å™ªå£°
         y_cmp = d_cmp + sigma*randn(size(d_cmp));
 
-        % ÒëÂë¶Ë½ÓÊÕ
+        % è¯‘ç ç«¯æ¥æ”¶
         LLR_y = 2*y/(sigma^2);
         LLR_y_cmp =  2*y_cmp/(sigma^2);
         
-        % NMSÒëÂë
+        % NMSè¯‘ç 
         %v_OMS = LDPCDecoder_OMS( H, LLR_y, beta(beta_i), iterMax,1008 );
         v_OMS_cmp = LDPCDecoder_OMS( H_cmp, LLR_y_cmp, beta(beta_i), iterMax,384);
-        %Îó±ÈÌØÊı¡¢ÎóÖ¡ÊıÍ³¼Æ
+        %è¯¯æ¯”ç‰¹æ•°ã€è¯¯å¸§æ•°ç»Ÿè®¡
         %errorbits_OMS = sum(s ~= v_OMS);
         errorbits_OMS = sum(s_cmp ~= v_OMS_cmp);
         ErrorBits_OMS = ErrorBits_OMS + errorbits_OMS;
@@ -91,8 +91,8 @@ for beta_i = 1:1:length(beta)
     BER(1, beta_i) = ErrorBits_OMS/(K * blocks_OMS);
 end
 
-% »æÖÆBER
+% ç»˜åˆ¶BER
 xlswrite('./BERforFindBestBeta.xlsx', BER);
-semilogy(beta, BER, 'K-^', 'LineWidth', 1.0, 'MarkerSize', 5); % Èı½Çmarker ºÚÏß
+semilogy(beta, BER, 'K-^', 'LineWidth', 1.0, 'MarkerSize', 5); % ä¸‰è§’marker é»‘çº¿
 xlabel('\beta'); ylabel('BER');
 
